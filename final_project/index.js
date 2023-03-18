@@ -12,10 +12,10 @@ app.use("/customer", session({ secret: "fingerprint_customer", resave: true, sav
 
 app.use("/customer/auth/*", function auth(req, res, next) {
     if (req.session.authorization) {
-        token = req.session.authorization['accessToken'];
-        jwt.verify(token, "access", (err, user) => {
+        token = req.session.authorization.token;
+        jwt.verify(token, "access", (err, tok) => {
             if (!err) {
-                req.user = user;
+                req.user = req.session.authorization.username;
                 next();
             }
             else {
