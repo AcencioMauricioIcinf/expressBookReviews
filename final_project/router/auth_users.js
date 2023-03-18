@@ -26,15 +26,35 @@ regd_users.post("/login", (req,res) => {
     if (!isValid(username) || !authenticatedUser(username, password)) {
         return res.status(403).json({ message: "Wrong password or username" });
     }
-    const token = jwt.sign({ data: password }, 'access', { expiresIn: 60 * 60 })
+    const token = jwt.sign({ data: {username, password} }, 'access', { expiresIn: 60 * 60 })
     req.session.authorization = { token, username };
     return res.send(username + " successfully logged in!")
 });
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+    const isbn = req.params.isbn;
+    if (!isbn || isNaN(isbn)) {
+        return res.status(400).json({ message: "You need to provide a valid ISBN" })
+    }
+    if (!books[isbn]) {
+        return res.status(404).json({message: "No book is found for ISBN " + isbn})
+    }
+    const review = req.query.review;
+    books[isbn].reviews[req.user] = review;
+    return res.send("Review added successfully")
+});
+
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    const isbn = req.params.isbn;
+    if (!isbn || isNaN(isbn)) {
+        return res.status(400).json({ message: "You need to provide a valid ISBN" })
+    }
+    if (!books[isbn]) {
+        return res.send("This book is already not present")
+    }
+    books[isbn].reviews[req.user] = undefined;
+    return res.send("Review deleted successfully")
 });
 
 module.exports.authenticated = regd_users;
